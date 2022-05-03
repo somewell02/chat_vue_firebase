@@ -1,0 +1,13 @@
+:root {
+    --primary-color: #AC83F0;
+    --secondary-color: white;
+    --bg-main-color: white;
+    --bg-chat-color: #eff3f7;
+}
+
+.dark-theme {
+    --primary-color: white;
+    --secondary-color: #1f1f1f;
+    --bg-main-color: #363636;
+    --bg-chat-color: #1f1f1f;
+}
