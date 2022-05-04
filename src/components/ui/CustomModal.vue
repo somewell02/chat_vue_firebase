@@ -51,6 +51,8 @@ export default {
   background: rgba(0, 0, 0, 0.5);
   z-index: 10;
   .modal_content {
+    display: flex;
+    flex-direction: column;
     background: var(--bg-main-color);
     padding: 30px;
     border-radius: 5px;

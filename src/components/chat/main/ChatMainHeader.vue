@@ -26,6 +26,10 @@
         @click="leaveFromChatRoom"
       />
       <img src="@/assets/delete.svg" alt="delete" @click="deleteChatRoom" />
+      <confirmation-popup
+        ref="confirmationPopup"
+        popup_title="Вы уверены, что хотите удалить чат?"
+      />
     </div>
   </header>
 </template>
@@ -49,6 +53,7 @@ export default {
   computed: {
     ...mapState({
       currentChatId: "currentChatId",
+      user: "user",
     }),
   },
 
@@ -65,7 +70,7 @@ export default {
       }
     },
 
-    deleteChatRoom() {
+    async deleteChatRoom() {
       deleteChatRoom(this.currentChatId);
       this.$store.commit("setCurrentChatId", "");
     },

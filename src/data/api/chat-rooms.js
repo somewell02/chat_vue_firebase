@@ -1,24 +1,41 @@
 import firebase from "firebase/compat/app";
 import { ref, onUnmounted } from "vue";
-import { db } from "./firebase";
+import { db, firebaseApp } from "./firebase";
+import {
+  getStorage,
+  ref as stRef,
+  uploadBytes,
+  getDownloadURL,
+} from "firebase/storage";
 import { getUserById } from "./users";
 import { sendMessageFromChatApp } from "./chat-messages";
 
 const chatRoomsCollection = db.collection("chatRooms");
 
-export const createChatRoom = async (chatName, userID) => {
+export const createChatRoom = async (chatName, userID, image) => {
   let user = null;
   await Promise.resolve(getUserById(userID)).then(function (value) {
     user = value;
   });
   let id = chatName + Math.floor(Math.random() * 100000);
+
+  let imageUrl = null;
+  if (image) {
+    const storage = getStorage(firebaseApp);
+    const storageRef = stRef(storage, "chat-avatars/" + image.name);
+
+    await uploadBytes(storageRef, image);
+    await getDownloadURL(storageRef).then((url) => {
+      imageUrl = url;
+    });
+  }
+
   const chatRoom = {
     name: chatName,
     chatRoomId: id,
     lastMessageTime: "",
     chatLastMessage: "",
-    chatIcon:
-      "https://img.freepik.com/free-vector/chat-speech-bubble-icon_23-2147501656.jpg?1",
+    chatIcon: imageUrl,
     users: [userID],
   };
   await chatRoomsCollection.doc(id).set(chatRoom);
@@ -43,7 +60,6 @@ export const joinChatRoom = async (chatID, userID) => {
 };
 
 export const leaveFromChatRoom = async (chatID, userID) => {
-  console.log(chatID, userID);
   await chatRoomsCollection.doc(chatID).update({
     users: firebase.firestore.FieldValue.arrayRemove(userID),
   });
@@ -81,10 +97,16 @@ export const getChatRoomsByUser = (userID) => {
   return chatRooms;
 };
 
-export const deleteChatRoom = (chatID) => {
-  // chatRoomsCollection
-  //   .doc(chatID)
-  //   .collection('messages')
-  //   .delete()
+export const deleteChatRoom = async (chatID) => {
+  const messagesCollection = chatRoomsCollection
+    .doc(chatID)
+    .collection("messages");
+
+  const snapshot = await messagesCollection.get();
+
+  snapshot.docs.forEach((message) => {
+    messagesCollection.doc(message.ref.id).delete();
+  });
+
   return chatRoomsCollection.doc(chatID).delete();
 };

@@ -7,6 +7,10 @@
       Join
     </custom-button>
     <custom-modal v-model="showAddModal">
+      <label class="chat_avatar_btn">
+        <input @change="uploadImage" type="file" accept="image/*" />
+        {{ uploadText }}
+      </label>
       <custom-input
         v-model="chatName"
         @keydown.enter="createChatRoom"
@@ -41,34 +45,67 @@
           Join
         </custom-button>
       </div>
+      <div class="error_message">{{ errorMessage }}</div>
     </custom-modal>
   </footer>
 </template>
 
 <script>
-import { createChatRoom, joinChatRoom } from "@/data/api/chat-rooms";
+import {
+  createChatRoom,
+  joinChatRoom,
+  getChatRoomById,
+} from "@/data/api/chat-rooms";
 
 export default {
   data() {
     return {
       chatName: "",
       chatID: "",
+      imageData: null,
+      uploadText: "Upload image",
       showAddModal: false,
       showJoinModal: false,
+      errorMessage: "",
     };
   },
 
   methods: {
     createChatRoom() {
-      createChatRoom(this.chatName, localStorage.getItem("uid"));
+      createChatRoom(
+        this.chatName,
+        localStorage.getItem("uid"),
+        this.imageData
+      );
       this.showAddModal = false;
       this.chatName = null;
+      this.imageData = null;
     },
 
     async joinChatRoom() {
-      joinChatRoom(this.chatID, localStorage.getItem("uid"));
-      this.showJoinModal = false;
-      this.chatID = null;
+      const chat = await getChatRoomById(this.chatID);
+      if (chat) {
+        joinChatRoom(this.chatID, localStorage.getItem("uid"));
+        this.showJoinModal = false;
+        this.chatID = null;
+        this.errorMessage = "";
+      } else this.errorMessage = "Chat is not exists";
+    },
+
+    uploadImage(event) {
+      const file = event.target.files[0];
+      var allowed_extensions = new Array(
+        "image/jpeg",
+        "image/png",
+        "image/gif"
+      );
+
+      if (file) {
+        if (allowed_extensions.includes(file.type)) {
+          this.imageData = file;
+          this.uploadText = "Image: " + file.name;
+        } else this.uploadText = "Type error, select again";
+      } else this.uploadText = "Upload image";
     },
   },
 };
@@ -91,5 +128,29 @@ footer {
   button {
     width: calc(50% - 5px);
   }
+}
+
+.chat_avatar_btn {
+  width: 100%;
+  margin-bottom: 10px;
+  cursor: pointer;
+  padding: 15px 20px;
+  border-radius: 3px;
+  background: var(--primary-color);
+  color: var(--secondary-color);
+  &:hover {
+    background: none;
+    border: 1px solid var(--primary-color);
+    padding: 14px 20px;
+    color: var(--primary-color);
+  }
+  input {
+    display: none;
+  }
+}
+
+.error_message {
+  color: red;
+  margin-top: 10px;
 }
 </style>
