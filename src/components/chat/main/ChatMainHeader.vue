@@ -31,10 +31,12 @@
         @click="leaveFromChatRoom"
       />
       <img src="@/assets/delete.svg" alt="delete" @click="deleteChatRoom" />
+
       <confirmation-popup
-        ref="confirmationPopup"
+        ref="confirmation"
         popup_title="Вы уверены, что хотите удалить чат?"
       />
+
       <custom-modal v-model="showEditModal">
         <label class="chat_avatar_btn">
           <input @change="uploadImage" type="file" accept="image/*" />
@@ -94,8 +96,11 @@ export default {
     },
 
     async deleteChatRoom() {
-      deleteChatRoom(this.currentChatId);
-      this.$store.commit("setCurrentChatId", "");
+      const popupResult = await this.$refs.confirmation.open();
+      if (popupResult) {
+        deleteChatRoom(this.currentChatId);
+        this.$store.commit("setCurrentChatId", "");
+      }
     },
 
     leaveFromChatRoom() {
