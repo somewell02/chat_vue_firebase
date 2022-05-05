@@ -21,6 +21,11 @@
     </div>
     <div class="actions">
       <img
+        src="@/assets/image-edit.svg"
+        alt="edit avatar"
+        @click="showEditModal = true"
+      />
+      <img
         src="@/assets/sign-out-purple.svg"
         alt="leave"
         @click="leaveFromChatRoom"
@@ -30,6 +35,20 @@
         ref="confirmationPopup"
         popup_title="Вы уверены, что хотите удалить чат?"
       />
+      <custom-modal v-model="showEditModal">
+        <label class="chat_avatar_btn">
+          <input @change="uploadImage" type="file" accept="image/*" />
+          {{ uploadText }}
+        </label>
+        <div class="buttons">
+          <custom-button color="primary" @click="showEditModal = false">
+            Cancel
+          </custom-button>
+          <custom-button color="primary" @click="editAvatar">
+            Edit
+          </custom-button>
+        </div>
+      </custom-modal>
     </div>
   </header>
 </template>
@@ -39,6 +58,7 @@ import {
   deleteChatRoom,
   leaveFromChatRoom,
   getChatRoomById,
+  editChatAvatar,
 } from "@/data/api/chat-rooms";
 
 import { mapState } from "vuex";
@@ -47,6 +67,9 @@ export default {
   data() {
     return {
       currentChat: null,
+      imageData: null,
+      uploadText: "Upload image",
+      showEditModal: false,
     };
   },
 
@@ -78,6 +101,31 @@ export default {
     leaveFromChatRoom() {
       leaveFromChatRoom(this.currentChatId, this.user.userId);
       this.$store.commit("setCurrentChatId", "");
+    },
+
+    async editAvatar() {
+      this.showEditModal = false;
+      await editChatAvatar(this.currentChatId, this.imageData);
+      this.getChat();
+      this.chatName = null;
+      this.imageData = null;
+      this.uploadText = "Upload image";
+    },
+
+    uploadImage(event) {
+      const file = event.target.files[0];
+      var allowed_extensions = new Array(
+        "image/jpeg",
+        "image/png",
+        "image/gif"
+      );
+
+      if (file) {
+        if (allowed_extensions.includes(file.type)) {
+          this.imageData = file;
+          this.uploadText = "Image: " + file.name;
+        } else this.uploadText = "Type error, select again";
+      } else this.uploadText = "Upload image";
     },
   },
 

@@ -80,6 +80,7 @@ export default {
       this.showAddModal = false;
       this.chatName = null;
       this.imageData = null;
+      this.uploadText = "Upload image";
     },
 
     async joinChatRoom() {
@@ -121,6 +122,13 @@ footer {
     flex: 0 0 48%;
   }
 }
+.error_message {
+  color: red;
+  margin-top: 10px;
+}
+</style>
+
+<style lang="scss">
 .modal_content .buttons {
   display: flex;
   justify-content: space-between;
@@ -147,10 +155,5 @@ footer {
   input {
     display: none;
   }
-}
-
-.error_message {
-  color: red;
-  margin-top: 10px;
 }
 </style>

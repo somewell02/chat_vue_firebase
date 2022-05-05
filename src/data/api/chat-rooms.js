@@ -12,23 +12,39 @@ import { sendMessageFromChatApp } from "./chat-messages";
 
 const chatRoomsCollection = db.collection("chatRooms");
 
+export const addImageInStorage = async (image, path) => {
+  const storage = getStorage(firebaseApp);
+  const storageRef = stRef(storage, path + image.name);
+
+  await uploadBytes(storageRef, image);
+  let imageUrl = null;
+  await getDownloadURL(storageRef).then((url) => {
+    imageUrl = url;
+  });
+  return imageUrl;
+};
+
+export const setChatAvatar = async (chatID, image) => {
+  var blob = image.slice(0, image.size, image.type);
+  const modifiedImage = new File([blob], "avatar." + image.name.split(".")[1], {
+    type: image.type,
+  });
+  const imageUrl = await addImageInStorage(
+    modifiedImage,
+    "chats-images/" + chatID + "/"
+  );
+
+  return imageUrl;
+};
+
 export const createChatRoom = async (chatName, userID, image) => {
   let user = null;
   await Promise.resolve(getUserById(userID)).then(function (value) {
     user = value;
   });
-  let id = chatName + Math.floor(Math.random() * 100000);
+  const id = Math.floor(Math.random() * 100000).toString();
 
-  let imageUrl = null;
-  if (image) {
-    const storage = getStorage(firebaseApp);
-    const storageRef = stRef(storage, "chat-avatars/" + image.name);
-
-    await uploadBytes(storageRef, image);
-    await getDownloadURL(storageRef).then((url) => {
-      imageUrl = url;
-    });
-  }
+  const imageUrl = image ? await setChatAvatar(id, image) : null;
 
   const chatRoom = {
     name: chatName,
@@ -41,6 +57,12 @@ export const createChatRoom = async (chatName, userID, image) => {
   await chatRoomsCollection.doc(id).set(chatRoom);
 
   sendMessageFromChatApp(id, user.name + " created the chat");
+};
+
+export const editChatAvatar = async (chatID, image) => {
+  const imageUrl = image ? await setChatAvatar(chatID, image) : null;
+
+  await chatRoomsCollection.doc(chatID).update({ chatIcon: imageUrl });
 };
 
 export const getChatRoomById = async (id) => {
