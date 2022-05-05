@@ -1,6 +1,4 @@
 <template>
-  <!-- <div class="popup_wrapper" v-if="isOpen" @click="close">
-    <div class="popup_content" @click.stop> -->
   <custom-modal v-model="isOpen">
     <h5>{{ popup_title ?? "Вы уверены?" }}</h5>
     <div class="actions">

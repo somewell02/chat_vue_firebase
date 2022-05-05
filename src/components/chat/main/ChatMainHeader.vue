@@ -33,8 +33,12 @@
       <img src="@/assets/delete.svg" alt="delete" @click="deleteChatRoom" />
 
       <confirmation-popup
-        ref="confirmation"
+        ref="deleteConfirmation"
         popup_title="Вы уверены, что хотите удалить чат?"
+      />
+      <confirmation-popup
+        ref="leaveConfirmation"
+        popup_title="Вы уверены, что хотите покинуть чат?"
       />
 
       <custom-modal v-model="showEditModal">
@@ -96,16 +100,19 @@ export default {
     },
 
     async deleteChatRoom() {
-      const popupResult = await this.$refs.confirmation.open();
+      const popupResult = await this.$refs.deleteConfirmation.open();
       if (popupResult) {
         deleteChatRoom(this.currentChatId);
         this.$store.commit("setCurrentChatId", "");
       }
     },
 
-    leaveFromChatRoom() {
-      leaveFromChatRoom(this.currentChatId, this.user.userId);
-      this.$store.commit("setCurrentChatId", "");
+    async leaveFromChatRoom() {
+      const popupResult = await this.$refs.leaveConfirmation.open();
+      if (popupResult) {
+        leaveFromChatRoom(this.currentChatId, this.user.userId);
+        this.$store.commit("setCurrentChatId", "");
+      }
     },
 
     async editAvatar() {
